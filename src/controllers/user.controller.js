@@ -26,7 +26,7 @@ const registerUser = asyncHandler(async (req, res) => {
   if (
     req.files &&
     Array.isArray(req.files.coverImage) &&
-    req.files.coverImage.length > 0
+    req.files.coverImage.length
   ) {
     coverImageLocalPath = req.files.coverImage[0].path;
   }
