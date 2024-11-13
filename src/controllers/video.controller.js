@@ -5,6 +5,7 @@ import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { SORT_TYPE, VIDEO_SORT_BY_OPTIONS } from "../constants.js";
 
 const getAllVideos = asyncHandler(async (req, res) => {
   const { query, sortBy, sortType, userId } = req.query;
@@ -14,13 +15,29 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
   const skip = (page - 1) * limit;
 
+  const sortOrder = sortType == SORT_TYPE.DESCENDING ? -1 : 1;
+  const sortOn = Object.values(VIDEO_SORT_BY_OPTIONS).includes(sortBy)
+    ? sortBy
+    : VIDEO_SORT_BY_OPTIONS.CREATED_AT;
+
   let queryObj = {};
 
   if (userId && isValidObjectId(userId)) {
     queryObj.owner = userId;
   }
 
+  if (query) {
+    queryObj = {
+      ...queryObj,
+      $or: [
+        { title: { $regex: new RegExp(query, "i") } },
+        { description: { $regex: new RegExp(query, "i") } },
+      ],
+    };
+  }
+
   const videos = await Video.find(queryObj)
+    .sort({ [sortOn]: sortOrder })
     .skip(skip)
     .limit(limit)
     .populate("owner", "username fullName avatar coverImage")
@@ -35,7 +52,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         { videos, currentPage: page, totalPages, totalDocuments },
-        "User videos retrieved successfully"
+        "Videos retrieved successfully"
       )
     );
 });
