@@ -55,7 +55,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
         "Videos retrieved successfully"
       )
     );
-});
+}); 
 
 const publishAVideo = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
